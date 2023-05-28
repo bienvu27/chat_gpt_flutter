@@ -1,7 +1,7 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:chat_gpt_flutter/constants/constants.dart';
 import 'package:chat_gpt_flutter/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
-
 
 import '../services/assets_manager.dart';
 
@@ -13,7 +13,6 @@ class ChatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
         Material(
@@ -34,7 +33,24 @@ class ChatWidget extends StatelessWidget {
                   width: 8,
                 ),
                 Expanded(
-                  child: TextWidget(label: msg),
+                  child: chatIndex == 0
+                      ? TextWidget(
+                          label: msg,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        )
+                      : AnimatedTextKit(
+                    isRepeatingAnimation: false,
+                          repeatForever: false,
+                          displayFullTextOnTap: true,
+                          totalRepeatCount: 1,
+                          animatedTexts: [
+                            TyperAnimatedText(
+                              msg.trim(),
+                            ),
+                          ],
+                        ),
                 ),
                 chatIndex == 0
                     ? const SizedBox.shrink()

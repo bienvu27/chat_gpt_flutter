@@ -1,6 +1,5 @@
-import 'dart:developer';
-
 import 'package:chat_gpt_flutter/constants/constants.dart';
+import 'package:chat_gpt_flutter/provider/chats_provider.dart';
 import 'package:chat_gpt_flutter/services/api_service.dart';
 import 'package:chat_gpt_flutter/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
@@ -41,11 +40,12 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  List<ChatModel> chatList = [];
+  // List<ChatModel> chatList = [];
 
   @override
   Widget build(BuildContext context) {
     final modelsProvider = Provider.of<ModelProvider>(context);
+    final chatProvider = Provider.of<ChatProvider>(context);
     return Scaffold(
       appBar: AppBar(
         elevation: 2,
@@ -71,11 +71,11 @@ class _ChatScreenState extends State<ChatScreen> {
             Flexible(
               child: ListView.builder(
                   controller: _listScrollController,
-                  itemCount: chatList.length,
+                  itemCount: chatProvider.getChatList.length,
                   itemBuilder: (context, index) {
                     return ChatWidget(
-                      msg: chatList[index].msg,
-                      chatIndex: chatList[index].chatIndex,
+                      msg: chatProvider.getChatList[index].msg,
+                      chatIndex: chatProvider.getChatList[index].chatIndex,
                     );
                   }),
             ),
@@ -100,7 +100,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         focusNode: focusNode,
                         controller: textEditingController,
                         onSubmitted: (value) async {
-                          await sendMessageFCT(modelProvider: modelsProvider);
+                          await sendMessageFCT(
+                              modelProvider: modelsProvider,
+                              chatProvider: chatProvider);
                         },
                         decoration: const InputDecoration.collapsed(
                           hintText: "How can I help you",
@@ -112,7 +114,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     IconButton(
                         onPressed: () async {
-                          await sendMessageFCT(modelProvider: modelsProvider);
+                          await sendMessageFCT(
+                              modelProvider: modelsProvider,
+                              chatProvider: chatProvider);
                         },
                         icon: const Icon(
                           Icons.send,
@@ -136,20 +140,44 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> sendMessageFCT({required ModelProvider modelProvider}) async {
+  Future<void> sendMessageFCT(
+      {required ModelProvider modelProvider,
+      required ChatProvider chatProvider}) async {
+    if(textEditingController!.text.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: TextWidget(
+              label: "Please type a message",
+            ),
+            backgroundColor: Colors.red,
+          ),
+      );
+    }
     try {
       setState(() {
         _isTyping = true;
-        chatList.add(ChatModel(msg: textEditingController!.text, chatIndex: 0));
+        // chatList.add(ChatModel(msg: textEditingController!.text, chatIndex: 0));
+        chatProvider.addUserMessage(msg: textEditingController!.text);
         textEditingController?.clear();
         focusNode.unfocus();
       });
-      chatList.addAll(await ApiService.sendMessage(
-          message: textEditingController!.text,
-          modelId: modelProvider.getCurrentModel));
+      await chatProvider.sendMessageAndGetAnswers(
+          msg: textEditingController!.text,
+          chosenModelId: modelProvider.getCurrentModel);
+      // chatList.addAll(await ApiService.sendMessage(
+      //     message: textEditingController!.text,
+      //     modelId: modelProvider.getCurrentModel));
       setState(() {});
     } catch (e) {
       print("error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: TextWidget(
+            label: e.toString(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       setState(() {
         scrollListToEnd();
