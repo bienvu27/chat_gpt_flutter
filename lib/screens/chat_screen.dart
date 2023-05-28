@@ -5,6 +5,8 @@ import 'package:chat_gpt_flutter/services/api_service.dart';
 import 'package:chat_gpt_flutter/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
+import '../provider/model_provider.dart';
 import '../services/assets_manager.dart';
 import '../services/services.dart';
 import '../widgets/chat_widget.dart';
@@ -18,7 +20,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final bool _isTyping = true;
-  TextEditingController? textEditingController;
+  late TextEditingController? textEditingController;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final modelsProvider = Provider.of<ModelProvider>(context);
     return Scaffold(
       appBar: AppBar(
         elevation: 2,
@@ -97,7 +100,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       IconButton(
                           onPressed: () async {
                             try {
-                              await ApiService.getModels();
+                              await ApiService.sendMessage(
+                                  message: "${textEditingController?.text}",
+                                  modelId: modelsProvider.getCurrentModel);
                             } catch (e) {
                               print("error: $e");
                             }

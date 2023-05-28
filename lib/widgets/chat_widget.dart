@@ -2,6 +2,7 @@ import 'package:chat_gpt_flutter/constants/constants.dart';
 import 'package:chat_gpt_flutter/widgets/text_widget.dart';
 import 'package:flutter/material.dart';
 
+
 import '../services/assets_manager.dart';
 
 class ChatWidget extends StatelessWidget {
@@ -12,6 +13,7 @@ class ChatWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
       children: [
         Material(
